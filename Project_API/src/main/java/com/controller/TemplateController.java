@@ -35,18 +35,11 @@ public class TemplateController{
     public TemplateController(TemplateDAO templateDao) {
         this.templateDao = templateDao;
     }
-    public void exceptionTest(){
-        if(testingCatch){
-            testingCatch = false;
-            throw new RuntimeException();
-        }
-    }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
     @GetMapping("")
     public ResponseEntity<Template[]>getAllTemps( ){
         LOG.info("\nGET /template");
         try {
-            exceptionTest();
             Template[] retVal = this.templateDao.getTemplates(-1);
             return new ResponseEntity<Template[]>(retVal,HttpStatus.OK);
         } catch (Exception e) {
@@ -59,7 +52,7 @@ public class TemplateController{
     public ResponseEntity<Template[]>getTLFromPaths(  @PathVariable Integer temid){
         LOG.info("\nGET /template/"+temid);
         try {
-            exceptionTest();
+            
             Template[] retVal = this.templateDao.getTemplates(temid);
             if(retVal!=null){
                 return new ResponseEntity<Template[]>(retVal ,HttpStatus.OK);
@@ -77,7 +70,7 @@ public class TemplateController{
     public ResponseEntity<Template[]>getTLFromParam(  @RequestParam(name = "temid", required = true) Integer temid){
         LOG.info("\nGET /template/"+temid);
         try {
-            exceptionTest();
+            
             Template[] retVal = this.templateDao.getTemplates(temid);
             if(retVal!=null){
                 return new ResponseEntity<Template[]>(retVal ,HttpStatus.OK);
@@ -97,7 +90,6 @@ public class TemplateController{
                                                 ){
         LOG.info("\nPOST /template/" + tname );
         try{
-            exceptionTest();
             Boolean responseVal = templateDao.createTemplate(tname,tmess,tbool);
             if(responseVal){
                 return new ResponseEntity<Boolean>(responseVal, HttpStatus.CREATED);
@@ -120,7 +112,6 @@ public class TemplateController{
                                                 ){
         LOG.info("\nPUT /template/" + temid + ":" + tname);
         try{
-            exceptionTest();
             Boolean reponseVal =  templateDao.updateTemplate(temid, tname, tdesc, tbool);
             if(reponseVal){
                 return new ResponseEntity<Boolean>(reponseVal, HttpStatus.OK);
@@ -140,7 +131,6 @@ public class TemplateController{
                                                     ){
         LOG.info("\nDELETE /template/" + temid);
         try {
-            exceptionTest();
             Boolean reponseVal =  templateDao.deleteTemplate(temid);
             if(reponseVal){
                 return new ResponseEntity<Boolean>(reponseVal, HttpStatus.OK);

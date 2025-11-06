@@ -1,7 +1,5 @@
 {
     "java.configuration.updateBuildConfiguration": "interactive",
-    "java.project.sourcePaths": [
-        "Project_API"
-    ],
+    "java.project.sourcePaths": [],
     "java.project.referencedLibraries": []
 }

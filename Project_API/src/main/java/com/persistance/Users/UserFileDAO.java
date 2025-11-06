@@ -11,7 +11,7 @@ package com.persistance.Users;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 import com.model.User;
-import com.persistance.Database.MongoDBConn;
+import com.persistance.Database.MongoConn;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import org.bson.Document;
@@ -19,7 +19,7 @@ import org.bson.Document;
 
 
 public class UserFileDAO implements UserDAO {
-    private final MongoCollection<Document> users = MongoDBConn.getDatabase().getCollection("users");
+    private final MongoCollection<Document> users = MongoConn.getDatabase().getCollection("users");
 
     /**
      * {@inheritDoc}

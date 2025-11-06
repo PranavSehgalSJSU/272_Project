@@ -7,16 +7,20 @@ package com.persistance.Database;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import org.springframework.context.annotation.Configuration;
 
-public class MongoDBConn {
+@Configuration
+public class MongoConn {
     private static MongoDatabase database = null;
-    private static final String CONNECTION_STRING = "mongodb+srv://DB_USER:DB_PASS@cluster0.pfxzed6.mongodb.net/?appName=Cluster0";
-    private static final String DB_NAME = "notification_system";
+
+
+    private static String conStr = PropertyReader.getProperty("mongo.url");
+    private static String dbName = PropertyReader.getProperty("mongo.dbn");;
 
     public static MongoDatabase getDatabase() {
         if (database == null) {
-            MongoClient client = MongoClients.create(CONNECTION_STRING);
-            database = client.getDatabase(DB_NAME);
+            MongoClient client = MongoClients.create(conStr);
+            database = client.getDatabase(dbName);
         }
         return database;
     }

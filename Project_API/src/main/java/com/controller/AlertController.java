@@ -5,6 +5,7 @@ package com.controller;
 //
 //  DESCRIPTION: Controller file to listen and redirect all requests for /alert
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 import com.model.AlertRequest;
 import com.model.User;
 import com.persistance.Users.*;
@@ -15,14 +16,17 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/alert")
 public class AlertController {
-    private final UserDAO userDAO = new UserFileDAO();
 
-    @PostMapping("/send")
+    private final UserDAO userDAO = new UserFileDAO();
+    private final AuthController authController = new AuthController();
+
+    @PostMapping("/sendFromUser")
     public ResponseEntity<String> sendAlert(@RequestBody AlertRequest req) {
         User sender = userDAO.getUserByUsername(req.getSender());
-        if (sender == null || !req.getToken().equals("auth0|" + sender.getUsername() + "|mock-jwt-token")) {
+        if (sender == null || !authController.isValidToken(req.getSender(), req.getToken())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid sender or token");
         }
+
         User receiver = userDAO.getUserByUsername(req.getReceiver());
         if (receiver == null)
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Receiver not found");

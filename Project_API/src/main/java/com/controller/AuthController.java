@@ -1,11 +1,14 @@
 package com.controller;
+import com.model.Auth0Model;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FILE : AuthController.java
 //  AUTHOR : Pranav Sehgal <PranavSehgalSJSU>
 //
 //  DESCRIPTION: Controller file to listen and redirect all requests for /auth
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 import com.model.User;
+import java.util.HashMap;
 import com.persistance.Users.UserDAO;
 import com.persistance.Users.UserFileDAO;
 import org.springframework.http.HttpStatus;
@@ -16,7 +19,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
     private final UserDAO userDAO = new UserFileDAO();
-    
+
+    // Map to store user-token pairs in memory
+    private static HashMap<String, String> tokenMap = new HashMap<String, String>();
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody User user) {
         if (user.getUsername() == null || user.getPassword() == null) {
@@ -38,20 +43,20 @@ public class AuthController {
         }
 
         User storedUser = userDAO.getUserByUsername(loginRequest.getUsername());
-        if (storedUser == null) {
+        if (storedUser == null || !storedUser.getPassword().equals(loginRequest.getPassword())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
 
-        if (!storedUser.getPassword().equals(loginRequest.getPassword())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+        // Generate or reuse token
+        String token = tokenMap.get(loginRequest.getUsername());
+        if (token == null) {
+            token = Auth0Model.getToken();
+            tokenMap.put(loginRequest.getUsername(), token);
         }
 
-        // TODO: Integrate with Auth0 API here to validate credentials and generate JWT token
-        // For now, simulate token generation:
-        String fakeJwt = "fake-jwt-token-for-" + storedUser.getUsername();
-
-        return ResponseEntity.ok("{\"token\": \"" + fakeJwt + "\"}");
+        return ResponseEntity.ok("{\"token\": \"" + token + "\"}");
     }
+
     @GetMapping("/verify")
     public ResponseEntity<String> verify(@RequestParam String username, @RequestParam String type) {
         User user = userDAO.getUserByUsername(username);
@@ -63,5 +68,21 @@ public class AuthController {
 
         userDAO.updateUser(user);
         return ResponseEntity.ok("Verification successful for " + type);
+    }
+
+    // Helper method to validate token
+    public boolean isValidToken(String username, String token) {
+        if(tokenMap.containsKey(username)){
+            System.out.println("FOUND : "+tokenMap.get(username));
+        }else{
+            
+            System.out.println("COULDN'T FIND : "+username+".."+token+"\n\n");
+            for ( String key : tokenMap.keySet() ) {
+                System.out.println( key );
+            }
+            System.out.println(tokenMap.size());
+        
+        }
+        return tokenMap.containsKey(username) && tokenMap.get(username).equals(token);
     }
 }

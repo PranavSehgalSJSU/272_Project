@@ -1,5 +1,4 @@
 package com.controller;
-import com.model.Auth0Model;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FILE : AuthController.java
 //  AUTHOR : Pranav Sehgal <PranavSehgalSJSU>
@@ -9,11 +8,17 @@ import com.model.Auth0Model;
 
 import com.model.User;
 import java.util.HashMap;
-import com.persistance.Users.*;
+import com.model.Auth0Model;
 import com.persistance.Email.*;
+import com.persistance.Users.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @RestController
@@ -21,7 +26,8 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final UserDAO userDAO = new UserFileDAO();
     private final EmailDAO emailDAO = new EmailFileDAO();
-    private static HashMap<String, String> tokenMap = new HashMap<String, String>();
+    
+    private static HashMap<String, String> tokenMap = new HashMap<>();
 
     /**
      * 

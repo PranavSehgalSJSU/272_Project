@@ -1,0 +1,8 @@
+services:
+  api:
+    build: .
+    container_name: Project_API
+    ports:
+      - "8080:8080"
+    environment:
+      - MONGO_URI=mongodb+srv://user:pass@cluster0.mongodb.net/

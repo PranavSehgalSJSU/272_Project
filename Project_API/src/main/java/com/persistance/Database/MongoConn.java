@@ -19,7 +19,7 @@ public class MongoConn {
     private static String dbName = PropertyReader.getProperty("mongo.dbn");;
 
     public static MongoDatabase getDatabase() {
-        if (database == null) {
+        if (database == null && !(conStr==null || dbName==null)) {
             try{
                 MongoClient client = MongoClients.create(conStr);
                 database = client.getDatabase(dbName);

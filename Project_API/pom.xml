@@ -4,7 +4,8 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.6.2</version>
+		<!-- Upgraded parent to a Spring Boot 3.2.x line to support Java 21 -->
+		<version>3.2.12</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com</groupId>
@@ -13,7 +14,8 @@
 	<name>Project-API</name>
 	<description>Rest API Backend Using Springboot</description>
 	<properties>
-		<java.version>11</java.version>
+		<!-- Target Java version: upgraded to 21 (LTS) -->
+		<java.version>21</java.version>
 		<jacoco.version>0.8.7</jacoco.version>
 		<exec.maven.version>3.0.0</exec.maven.version>
 	</properties>
@@ -35,11 +37,24 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>jakarta.mail</artifactId>
+			<version>2.0.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+			<!-- Ensure compilation uses the configured java.version (release 21) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.11.0</version>
+				<configuration>
+					<release>${java.version}</release>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

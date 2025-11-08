@@ -4,10 +4,11 @@ package com.persistance.Database;
 //  AUTHOR : Pranav Sehgal <PranavSehgalSJSU>
 //  DESCRIPTION: Is main mesh layer used to connect to MongoDB atlas connection instance
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
+import org.springframework.context.annotation.Configuration;
+
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
-import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class MongoConn {
@@ -19,8 +20,12 @@ public class MongoConn {
 
     public static MongoDatabase getDatabase() {
         if (database == null) {
-            MongoClient client = MongoClients.create(conStr);
-            database = client.getDatabase(dbName);
+            try{
+                MongoClient client = MongoClients.create(conStr);
+                database = client.getDatabase(dbName);
+            }catch(Exception e){
+                System.out.println("\n\nUnable to Connect to MongoDb");
+            }
         }
         return database;
     }

@@ -28,4 +28,10 @@ public interface UserDAO {
      * @param user userobject w/ data
      */
     void updateUser(User user);
+
+    /**
+     * Sets a default mode for user if not specified
+     * @
+     */
+    String chooseMode(User user,String mode);
 }

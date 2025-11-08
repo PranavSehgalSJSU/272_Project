@@ -11,6 +11,7 @@ public class AlertRequest {
     private String receiver;
     private String message;
     private String mode;
+    private String header;
 
     public AlertRequest() {}
 
@@ -33,13 +34,13 @@ public class AlertRequest {
 
     
     public String getMessage() { return message;}
-    public void setMessage(String message) {
-        this.message = message;
-    }
 
     
     public String getMode() { return mode;}
     public void setMode(String mode) {
         this.mode = mode;
     }
+
+    public String getHeader() { return header;}
+
 }

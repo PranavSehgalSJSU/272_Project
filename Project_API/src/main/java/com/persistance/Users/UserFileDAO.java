@@ -10,11 +10,12 @@ package com.persistance.Users;
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+import org.bson.Document;
+
 import com.model.User;
-import com.persistance.Database.MongoConn;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
-import org.bson.Document;
+import com.persistance.Database.MongoConn;
 
 
 
@@ -44,7 +45,7 @@ public class UserFileDAO implements UserDAO {
     @Override
     public User getUserByUsername(String username) {
         Document doc = users.find(Filters.eq("username", username)).first();
-        if (doc == null) return null;
+        if (doc == null){return null;}
         User user = new User();
         user.setUsername(doc.getString("username"));
         user.setPassword(doc.getString("password"));
@@ -67,5 +68,22 @@ public class UserFileDAO implements UserDAO {
                         .append("verifiedEmail", user.isVerifiedEmail())
                         .append("verifiedPhone", user.isVerifiedPhone())
                         .append("allowAlerts", user.isAllowAlerts())));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String chooseMode(User user, String mode) {
+        if (!(mode == null || mode.isBlank())){
+            return mode.toLowerCase();
+        }else if (user.getEmail() != null && user.isVerifiedEmail()){
+            return "email";
+        }else if (user.getPhone() != null && user.isVerifiedPhone()){ 
+            return "phone";
+        }else if (user.getPushId() != null){
+            return "push";
+        }
+        return null;
     }
 }

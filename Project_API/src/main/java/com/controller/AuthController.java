@@ -9,33 +9,45 @@ import com.model.Auth0Model;
 
 import com.model.User;
 import java.util.HashMap;
-import com.persistance.Users.UserDAO;
-import com.persistance.Users.UserFileDAO;
+import com.persistance.Users.*;
+import com.persistance.Email.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
     private final UserDAO userDAO = new UserFileDAO();
-
-    // Map to store user-token pairs in memory
+    private final EmailDAO emailDAO = new EmailFileDAO();
     private static HashMap<String, String> tokenMap = new HashMap<String, String>();
+
+    /**
+     * 
+     * 
+     */
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody User user) {
-        if (user.getUsername() == null || user.getPassword() == null) {
+        String email = user.getEmail();
+        String username = user.getUsername();
+
+        if (username == null || email==null|| user.getPassword() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username and password are required");
         }
 
-        if (userDAO.getUserByUsername(user.getUsername()) != null) {
+        if (userDAO.getUserByUsername(username) != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("User already exists");
         }
 
         userDAO.createUser(user);
+        if(emailDAO.isValidEmail(email)){
+            emailDAO.sendVerificationEmail(username, email);
+        }
+        
         return ResponseEntity.ok("User registered successfully. Please verify email/phone.");
     }
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody User loginRequest) {
         if (loginRequest.getUsername() == null || loginRequest.getPassword() == null) {

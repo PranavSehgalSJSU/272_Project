@@ -19,7 +19,6 @@
 
     <properties>
         <java.version>21</java.version>
-        <jacoco.version>0.8.7</jacoco.version>
         <exec.maven.version>3.0.0</exec.maven.version>
     </properties>
 
@@ -49,6 +48,12 @@
             <groupId>com.sun.mail</groupId>
             <artifactId>jakarta.mail</artifactId>
             <version>2.0.1</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.twilio.sdk</groupId>
+            <artifactId>twilio</artifactId>
+            <version>9.3.0</version>
         </dependency>
     </dependencies>
 

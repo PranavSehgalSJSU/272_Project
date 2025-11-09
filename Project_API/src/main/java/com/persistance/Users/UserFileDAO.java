@@ -62,6 +62,18 @@ public class UserFileDAO implements UserDAO {
      * {@inheritDoc}
      */
     @Override
+    public Boolean emailIsInUse(String email) {
+        Document doc = users.find(Filters.eq("email", email)).first();
+        if (doc != null){
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void updateUser(User user) {
         users.updateOne(Filters.eq("username", user.getUsername()),
                 new Document("$set", new Document()

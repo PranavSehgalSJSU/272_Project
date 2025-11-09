@@ -1,3 +1,4 @@
 Project_API/target/*
 .vscode/
 .temp/
+Project_API/src/main/resources/application.properties

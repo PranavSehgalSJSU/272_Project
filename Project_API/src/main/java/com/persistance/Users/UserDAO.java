@@ -24,6 +24,13 @@ public interface UserDAO {
     User getUserByUsername(String username);
 
     /**
+     * Searches the DB for user by email
+     * @param email email of user to search for
+     * @return True object if found, else False
+     */
+    Boolean emailIsInUse(String email);
+
+    /**
      * Updates exising user based on updated user object
      * @param user userobject w/ data
      */

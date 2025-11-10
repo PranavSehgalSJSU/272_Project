@@ -28,3 +28,10 @@ POST http://localhost:8080/alert/send
   "message": "...",
   "mode": "email/sms/push"
 }
+
+# Change allowed alerts
+POST http://localhost:8080/auth
+{
+  "username":"",
+  "token":""
+}

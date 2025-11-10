@@ -31,9 +31,9 @@ public class SmsFileDAO implements SmsDAO {
             System.out.println("Using Textbelt API key: " + API_KEY);
 
             List<NameValuePair> data = Arrays.asList(
-                new BasicNameValuePair("phone", "4084185600"),
-                new BasicNameValuePair("message", "Hello verfiy pls"),
-                new BasicNameValuePair("key", "7318a52cb77390ec3f961a1b167f0aa6ac7ad67bW7hs3y39eqMtqRk2pV8HksQFY")
+                new BasicNameValuePair("phone", phoneNumber),
+                new BasicNameValuePair("message", content),
+                new BasicNameValuePair("key", API_KEY)
             );
 
             HttpClient httpClient = HttpClients.createMinimal();

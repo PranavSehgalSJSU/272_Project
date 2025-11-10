@@ -66,7 +66,6 @@ public class EmailFileDAO implements EmailDAO {
         String apiLink = PropertyReader.getProperty("api.link");
         String verifyLink = apiLink+"/auth/verify?username=" + username + "&type=email";
         String mailBody = "Hello " + username + ",\n\n"
-                + "This is a locally hosted test email!\n\n"
                 + "Please verify your email address by clicking the link below:\n"
                 + verifyLink + "\n\n"
                 + "If you did not create this account, please ignore this email.\n\n"

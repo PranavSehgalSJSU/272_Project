@@ -2,73 +2,61 @@ package com.persistance.Sms;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 //  FILE : SmsFileDAO.java
 //  AUTHOR : Pranav Sehgal <PranavSehgalSJSU>
-//  DESCRIPTION: Sends free SMS via email-to-SMS gateways for all 4 major carriers.
+//  DESCRIPTION: Sends SMS via Textbelt API using Apache HttpClient.
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-import java.util.List;
 import java.util.Arrays;
-import com.persistance.Email.EmailFileDAO;
+import java.util.List;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
+
+import com.persistance.Database.PropertyReader;
 
 public class SmsFileDAO implements SmsDAO {
 
-    private final EmailFileDAO emailDAO = new EmailFileDAO();
-
-    private static final List<String> carriers = Arrays.asList(
-        "@txt.att.net",
-        "@mail.usmobile.com",
-        "@tmomail.net",
-        "@vtext.com",
-        "@messaging.sprintpcs.com",
-        "@sms.myboostmobile.com",
-        "@sms.cricketwireless.net",
-        "@mymetropcs.com",
-        "@email.uscc.net",
-        "@vmobl.com",
-        "@mmst5.tracfone.com",
-        "@message.ting.com",
-        "@msg.fi.google.com",
-        "@mailmymobile.net",
-        "@text.republicwireless.com",
-        "@cspire1.com",
-        "@smtext.com",
-        "@text.freedompop.com",
-        "@vtext.com"
-    );
+    private static final String API_URL = "http://textbelt.com/text";
+    private static final String API_KEY = PropertyReader.getProperty("textbelt.apikey");
 
     @Override
-    public void sendSmsTo(String phoneNumber, String message) {
-        //if (!isValidPhone(phoneNumber)) {return;}
+    public void sendSmsTo(String phoneNumber, String content) {
+        try {
+            System.out.println("Using Textbelt API key: " + API_KEY);
 
-        for (String domain : carriers) {
-            String smsEmail = phoneNumber + domain;
-            System.out.println(smsEmail);
-            try {
-                emailDAO.sendEmailTo(smsEmail, message, "");
-            } catch (Exception e) {
-                System.err.println("Unable to send with: "+domain);
-            }
+            List<NameValuePair> data = Arrays.asList(
+                new BasicNameValuePair("phone", "4084185600"),
+                new BasicNameValuePair("message", "Hello verfiy pls"),
+                new BasicNameValuePair("key", "7318a52cb77390ec3f961a1b167f0aa6ac7ad67bW7hs3y39eqMtqRk2pV8HksQFY")
+            );
+
+            HttpClient httpClient = HttpClients.createMinimal();
+            HttpPost httpPost = new HttpPost(API_URL);
+            httpPost.setEntity(new UrlEncodedFormEntity(data, "UTF-8"));
+
+            HttpResponse httpResponse = httpClient.execute(httpPost);
+            String responseString = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
+
+            JSONObject response = new JSONObject(responseString);
+            System.out.println("SMS API Response: " + response.toString(4));
+
+        } catch (Exception e) {
+            System.err.println("Error sending SMS: " + e.getMessage());
         }
-        System.out.println("Send End?");
     }
 
     @Override
     public void sendVerificationSms(String username, String phoneNumber) {
-        String verificationLink = "http://localhost:8080/auth/verify?username=" + username + "&type=phone";
-        String body = "Hey, " + username + ",\n\n"
-                + "This is your test verification SMS!\n"
-                + "Click below to verify your phone number:\n\n"
-                + verificationLink + "\n\n"
-                + "If you didn’t request this, please ignore it.\n\n"
-                + "Yours Sincerely\n,"
-                + "Pranav Sehgal Security System Incorporated\n";
-            
-        System.out.println(body);
-        sendSmsTo(phoneNumber, body);
-    }
-
-    @Override
-    public boolean isValidPhone(String phoneNumber) {
-        return phoneNumber != null && phoneNumber.matches("^\\+?[0-9]{10,15}$");
+        String verifyLink = "http://localhost:8080/auth/verify?username=" + username + "&type=phone";
+        String message = "Hey " + username + "!\n\n"
+                + "Please verify your phone number:\n"
+                + verifyLink + "\n\n";
+        sendSmsTo(phoneNumber, message);
     }
 }

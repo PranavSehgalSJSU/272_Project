@@ -6,6 +6,11 @@ package com.controller;
 //  DESCRIPTION: Controller file to listen and redirect all requests for /alert
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+import com.model.User;
+import com.persistance.Sms.*;
+import com.model.AlertRequest;
+import com.persistance.Email.*;
+import com.persistance.Users.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,16 +18,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.model.AlertRequest;
-import com.model.User;
-import com.persistance.Email.EmailDAO;
-import com.persistance.Email.EmailFileDAO;
-import com.persistance.Users.UserDAO;
-import com.persistance.Users.UserFileDAO;
-
 @RestController
 @RequestMapping("/alert")
 public class AlertController {
+    private final SmsDAO smsDAO = new SmsFileDAO();
     private final UserDAO userDAO = new UserFileDAO();
     private final EmailDAO emailDAO = new EmailFileDAO();
     private final AuthController authController = new AuthController();
@@ -55,7 +54,9 @@ public class AlertController {
             }case "phone" -> {
                 if (!receiver.isVerifiedPhone()){
                     return ResponseEntity.badRequest().body(resStr);
-                }
+                }else{
+                    smsDAO.sendSmsTo(receiver.getPhone(), req.getMessage());
+                } 
             }case "push" -> {
                 if (receiver.getPushId() == null){
                     return ResponseEntity.badRequest().body(resStr);

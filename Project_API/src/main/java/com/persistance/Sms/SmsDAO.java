@@ -7,9 +7,6 @@ package com.persistance.Sms;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 public interface SmsDAO {
-    void sendSmsTo(String phoneNumber, String message);
-
+    void sendSmsTo(String phoneNumber, String content);
     void sendVerificationSms(String username, String phoneNumber);
-    
-    boolean isValidPhone(String phoneNumber);
 }

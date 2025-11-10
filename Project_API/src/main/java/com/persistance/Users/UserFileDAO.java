@@ -74,6 +74,18 @@ public class UserFileDAO implements UserDAO {
      * {@inheritDoc}
      */
     @Override
+    public Boolean phoneIsInUse(String phone) {
+        Document doc = users.find(Filters.eq("phone", phone)).first();
+        if (doc != null){
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void updateUser(User user) {
         users.updateOne(Filters.eq("username", user.getUsername()),
                 new Document("$set", new Document()

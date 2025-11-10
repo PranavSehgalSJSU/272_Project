@@ -49,7 +49,11 @@ public class AuthController {
         }else if (userDAO.getUserByUsername(username) != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
         }else if(userDAO.emailIsInUse(email)){
+            //TODO : remove comment
             //return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use");
+        }else if(userDAO.phoneIsInUse(phone)){
+            //TODO : remove comment
+            //return ResponseEntity.status(HttpStatus.CONFLICT).body("Phone already in use");
         }
 
         userDAO.createUser(user);
@@ -57,7 +61,7 @@ public class AuthController {
         if(emailDAO.isValidEmail(email)){
             emailDAO.sendVerificationEmail(username, email);
         }
-        if(smsDAO.isValidPhone(phone)||true){
+        if(phone!=null && !phone.isBlank()){
             smsDAO.sendVerificationSms(username, phone);
         }
         
@@ -114,17 +118,6 @@ public class AuthController {
 
     // Helper method to validate token
     public boolean isValidToken(String username, String token) {
-        if(tokenMap.containsKey(username)){
-            System.out.println("FOUND : "+tokenMap.get(username));
-        }else{
-            
-            System.out.println("COULDN'T FIND : "+username+".."+token+"\n\n");
-            for ( String key : tokenMap.keySet() ) {
-                System.out.println( key );
-            }
-            System.out.println(tokenMap.size());
-        
-        }
         return tokenMap.containsKey(username) && tokenMap.get(username).equals(token);
     }
 }

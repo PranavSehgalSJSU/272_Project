@@ -11,6 +11,13 @@ import com.persistance.Sms.*;
 import com.model.AlertRequest;
 import com.persistance.Email.*;
 import com.persistance.Users.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,43 +35,73 @@ public class AlertController {
 
     @PostMapping("/sendFromUser")
     public ResponseEntity<String> sendAlert(@RequestBody AlertRequest req) {
-    
-        User sender = userDAO.getUserByUsername(req.getSender());
-        User receiver = userDAO.getUserByUsername(req.getReceiver());
 
+        User sender = userDAO.getUserByUsername(req.getSender());
         if (sender == null || !authController.isValidToken(sender.getUsername(), req.getToken())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid sender or token");
-        }else if (receiver == null){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Receiver not found");
-        }else if (!receiver.isAllowAlerts()){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(receiver.getUsername() + " has opted out of alerts");
-        }  
+        }
 
-        String mode   = userDAO.chooseMode(receiver, req.getMode());
-        String header = emailDAO.checkHeader(req.getHeader());
-        String resStr = (receiver.getUsername() + " hasn't verified this alert channel yet...");
+        Set<String> targetUsernames = new HashSet<>();
+        
+        if (req.getReceiver() != null && !req.getReceiver().isBlank()) {
+            targetUsernames.add(req.getReceiver());
+        }
 
-        switch (mode) {
-            case "email" -> {
-                if (!receiver.isVerifiedEmail()){
-                    return ResponseEntity.badRequest().body(resStr);
-                }else{
-                    emailDAO.sendEmailFromUser(sender,receiver,req.getMessage(), header);
-                } 
-            }case "phone" -> {
-                if (!receiver.isVerifiedPhone()){
-                    return ResponseEntity.badRequest().body(resStr);
-                }else{
-                    smsDAO.sendSmsTo(receiver.getPhone(), req.getMessage());
-                } 
-            }case "push" -> {
-                if (receiver.getPushId() == null){
-                    return ResponseEntity.badRequest().body(resStr);
+        if (req.getReceivers() != null) {
+            for (String name : req.getReceivers()) {
+                if (name != null && !name.isBlank()){
+                    targetUsernames.add(name);
                 }
-            }default -> {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid mode");
             }
         }
-        return ResponseEntity.ok("Alert sent to " + receiver.getUsername() + " via " + mode);
+
+        List<User> finalTargets = new ArrayList<>();
+
+        if (targetUsernames.contains("*")) {
+            finalTargets.addAll(Arrays.asList(userDAO.getAlertingUsers()));
+        } else {
+            for (String username : targetUsernames) {
+                User u = userDAO.getUserByUsername(username);
+                if (u != null) {
+                    finalTargets.add(u);
+                }
+            }
+        }
+
+        if (finalTargets.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No valid receivers found");
+        }
+
+        String mode = req.getMode() != null ? req.getMode() : "";
+        String header = emailDAO.checkHeader(req.getHeader());
+        StringBuilder responseBuilder = new StringBuilder();
+
+        for (User receiver : finalTargets) {
+
+            if (!receiver.isAllowAlerts()) {
+                responseBuilder.append(receiver.getUsername())
+                            .append(": opted out of alerts\n");
+                continue;
+            }
+
+            String resStr = receiver.getUsername() + " hasn't verified this alert channel yet...";
+            if(mode.equals("email") || mode.equals("*")){
+                if (!receiver.isVerifiedEmail()) {
+                    responseBuilder.append(resStr).append("\n");
+                } else {
+                    emailDAO.sendEmailFromUser(sender, receiver, req.getMessage(), header);
+                    responseBuilder.append("Sent email to ").append(receiver.getUsername()).append("\n");
+                }
+            }
+            if(mode.equals("phone") || mode.equals("*")){
+                if (!receiver.isVerifiedPhone()) {
+                    responseBuilder.append(resStr).append("\n");
+                } else {
+                    smsDAO.sendSmsTo(receiver.getPhone(), req.getMessage());
+                    responseBuilder.append("Sent SMS to ").append(receiver.getUsername()).append("\n");
+                }
+            }
+        }
+        return ResponseEntity.ok(responseBuilder.toString());
     }
 }

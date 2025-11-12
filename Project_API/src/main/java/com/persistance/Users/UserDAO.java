@@ -48,4 +48,9 @@ public interface UserDAO {
      * @
      */
     String chooseMode(User user,String mode);
+
+    /**
+     * Return an array of all users who wish to be alerted
+     */
+    User[] getAlertingUsers(); 
 }

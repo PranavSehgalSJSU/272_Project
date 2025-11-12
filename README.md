@@ -24,9 +24,11 @@ POST http://localhost:8080/alert/send
 {
   "sender": "user1",
   "receiver": "user2",
+  "receivers": ["user3", "user4"],
   "token": "auth0 Token",
-  "message": "...",
-  "mode": "email/sms/push"
+  "message": "...", 
+  "header" : "...",
+  "mode": "email/sms/*"
 }
 
 # Change allowed alerts

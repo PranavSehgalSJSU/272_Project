@@ -49,11 +49,11 @@ public class AuthController {
         }else if (userDAO.getUserByUsername(username) != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
         }else if(userDAO.emailIsInUse(email)){
-            sreturn ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use");
         }else if(userDAO.phoneIsInUse(phone)){
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Phone already in use");
         }
-
+        user.setAllowAlerts(true);
         userDAO.createUser(user);
 
         if(emailDAO.isValidEmail(email)){

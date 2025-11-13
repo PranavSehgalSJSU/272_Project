@@ -49,13 +49,11 @@ public class AuthController {
         }else if (userDAO.getUserByUsername(username) != null) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
         }else if(userDAO.emailIsInUse(email)){
-            //TODO : remove comment
-            //return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already in use");
         }else if(userDAO.phoneIsInUse(phone)){
-            //TODO : remove comment
-            //return ResponseEntity.status(HttpStatus.CONFLICT).body("Phone already in use");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Phone already in use");
         }
-
+        user.setAllowAlerts(true);
         userDAO.createUser(user);
 
         if(emailDAO.isValidEmail(email)){
@@ -116,7 +114,6 @@ public class AuthController {
         return ResponseEntity.ok("Verification successful for " + type);
     }
 
-    // Helper method to validate token
     public boolean isValidToken(String username, String token) {
         return tokenMap.containsKey(username) && tokenMap.get(username).equals(token);
     }

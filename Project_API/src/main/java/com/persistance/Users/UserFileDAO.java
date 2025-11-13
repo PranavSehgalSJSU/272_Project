@@ -10,9 +10,13 @@ package com.persistance.Users;
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bson.Document;
 
 import com.model.User;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.persistance.Database.MongoConn;
@@ -74,7 +78,7 @@ public class UserFileDAO implements UserDAO {
      * {@inheritDoc}
      */
     @Override
-    public Boolean phoneIsInUse(String phone) {
+    public Boolean phoneIsInUse(String phone){
         Document doc = users.find(Filters.eq("phone", phone)).first();
         if (doc != null){
             return true;
@@ -109,5 +113,21 @@ public class UserFileDAO implements UserDAO {
             return "push";
         }
         return null;
+    }
+
+    @Override
+    public User[] getAlertingUsers() {
+        FindIterable<Document> docs = users.find(Filters.eq("allowedAlerts", true));
+
+        List<User> alertingUsers = new ArrayList<>();
+        for (Document doc : docs) {
+            User user = new User();
+            user.setUsername(doc.getString("username"));
+            user.setEmail(doc.getString("email"));
+            user.setPhone(doc.getString("phone"));
+            user.setAllowAlerts(doc.getBoolean("allowedAlerts", false));
+            alertingUsers.add(user);
+        }
+        return alertingUsers.toArray(new User[0]);
     }
 }

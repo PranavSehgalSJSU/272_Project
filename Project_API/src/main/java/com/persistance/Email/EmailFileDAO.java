@@ -64,7 +64,8 @@ public class EmailFileDAO implements EmailDAO {
     @Override
     public void sendVerificationEmail(String username, String email) {
         String apiLink = PropertyReader.getProperty("api.link");
-        String verifyLink = apiLink+"/auth/verify?username=" + username + "&type=email";
+        String verifyLink = (apiLink+"/auth/verify?username=" + username + "&type=email").replaceAll(" ", "%20");
+
         String mailBody = "Hello " + username + ",\n\n"
                 + "Please verify your email address by clicking the link below:\n"
                 + verifyLink + "\n\n"

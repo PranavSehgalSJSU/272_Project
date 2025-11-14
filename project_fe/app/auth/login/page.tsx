@@ -23,15 +23,20 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       const payload = { username, password };
+
       const data = await api.post<any>(LOGIN_URL, payload, {
         withAuth: false,
-        credentials: "omit", // change to "include" if your API uses cookies/sessions
+        credentials: "omit",
       });
 
-      // Optional: if your API returns a token, save it using setToken from api.ts
-      // import { setToken } from "@/api"; if (data?.token) setToken(data.token);
+      if (!data || !data.token) {
+        throw new Error("Server did not return a token");
+      }
 
-      // Redirect to your app after login
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("userName", payload.username);
+
+      // Redirect
       window.location.assign("/home");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Login failed";
@@ -45,11 +50,15 @@ export default function LoginPage() {
     <div className="min-h-screen grid place-items-center bg-zinc-50 dark:bg-black p-4">
       <div className="w-full max-w-md rounded-2xl bg-white dark:bg-zinc-900 p-8 shadow-md">
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">Sign in</h1>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Use your username and password.</p>
+        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+          Use your username and password.
+        </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">Username</label>
+            <label htmlFor="username" className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">
+              Username
+            </label>
             <input
               id="username"
               type="text"
@@ -63,7 +72,9 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">Password</label>
+            <label htmlFor="password" className="block text-sm font-medium text-zinc-800 dark:text-zinc-200">
+              Password
+            </label>
             <input
               id="password"
               type="password"
@@ -76,7 +87,11 @@ export default function LoginPage() {
             />
           </div>
 
-          <button type="submit" disabled={isLoading} className="w-full rounded-xl bg-black px-4 py-2 text-white transition disabled:opacity-60">
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full rounded-xl bg-black px-4 py-2 text-white transition disabled:opacity-60"
+          >
             {isLoading ? "Signing in…" : "Sign in"}
           </button>
 
@@ -88,7 +103,10 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-6 text-sm text-zinc-600 dark:text-zinc-400">
-          Don't have an account? <a href="/auth/signup" className="font-medium underline">Create one</a>
+          Don't have an account?{" "}
+          <a href="/auth/signup" className="font-medium underline">
+            Create one
+          </a>
         </div>
       </div>
     </div>

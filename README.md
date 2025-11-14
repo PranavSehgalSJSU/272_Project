@@ -20,7 +20,7 @@ POST http://localhost:8080/auth/login
 }
 
 # User to User Alert
-POST http://localhost:8080/alert/send
+POST http://localhost:8080/alert/sendFromUser
 {
   "sender": "user1",
   "receiver": "user2",

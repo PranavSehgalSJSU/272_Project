@@ -67,6 +67,9 @@ public class UserFileDAO implements UserDAO {
      */
     @Override
     public Boolean emailIsInUse(String email) {
+        if(email==null||email.isBlank()){
+            return false;
+        }
         Document doc = users.find(Filters.eq("email", email)).first();
         if (doc != null){
             return true;
@@ -79,6 +82,9 @@ public class UserFileDAO implements UserDAO {
      */
     @Override
     public Boolean phoneIsInUse(String phone){
+        if(phone==null||phone.isBlank()){
+            return false;
+        }
         Document doc = users.find(Filters.eq("phone", phone)).first();
         if (doc != null){
             return true;

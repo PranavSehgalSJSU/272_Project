@@ -123,7 +123,7 @@ public class UserFileDAO implements UserDAO {
 
     @Override
     public User[] getAlertingUsers() {
-        FindIterable<Document> docs = users.find(Filters.eq("allowedAlerts", true));
+        FindIterable<Document> docs = users.find(Filters.eq("allowAlerts", true));
 
         List<User> alertingUsers = new ArrayList<>();
         for (Document doc : docs) {

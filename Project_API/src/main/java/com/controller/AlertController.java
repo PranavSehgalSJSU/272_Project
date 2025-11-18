@@ -78,15 +78,10 @@ public class AlertController {
 
         for (User receiver : finalTargets) {
 
-            if (!receiver.isAllowAlerts()) {
-                responseBuilder.append(receiver.getUsername())
-                            .append(": opted out of alerts\n");
-                continue;
-            }
 
             String resStr = receiver.getUsername() + " hasn't verified this alert channel yet...";
             if(mode.equals("email") || mode.equals("*")){
-                if (!receiver.isVerifiedEmail()) {
+                if (!receiver.isVerifiedEmail() && !targetUsernames.contains("*")) {
                     responseBuilder.append(resStr).append("\n");
                 } else {
                     emailDAO.sendEmailFromUser(sender, receiver, req.getMessage(), header);
@@ -94,7 +89,7 @@ public class AlertController {
                 }
             }
             if(mode.equals("phone") || mode.equals("*")){
-                if (!receiver.isVerifiedPhone()) {
+                if (!receiver.isVerifiedPhone() && !targetUsernames.contains("*")) {
                     responseBuilder.append(resStr).append("\n");
                 } else {
                     smsDAO.sendSmsTo(receiver.getPhone(), req.getMessage());

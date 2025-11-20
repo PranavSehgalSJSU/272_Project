@@ -93,7 +93,7 @@ public class AuthController {
             tokenMap.put(user.getUsername(), token);
         }
 
-        return ResponseEntity.ok("{\"token\": \"" + token + "\"}");
+        return ResponseEntity.ok("{\"token\": \"" + token + "\", \"isAdmin\": " + storedUser.isAdmin() + ", \"username\": \"" + storedUser.getUsername() + "\", \"email\": \"" + storedUser.getEmail() + "\"}");
     }
 
     /**
@@ -114,6 +114,38 @@ public class AuthController {
 
         userDAO.updateUser(user);
         return ResponseEntity.ok("Verification successful for " + type);
+    }
+
+    /**
+     * Create admin user (should only be called once during setup)
+     * @param user
+     * @return
+     */
+    @PostMapping("/create-admin")
+    public ResponseEntity<String> createAdmin(@RequestBody User user){
+        String username = user.getUsername();
+        System.out.println("/auth/create-admin/ \t"+username);
+        
+        // Check if admin already exists
+        if (userDAO.getAllUsers().stream().anyMatch(u -> u.isAdmin())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Admin user already exists");
+        }
+
+        if (username == null || user.getPassword() == null || user.getEmail() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Username, password, and email are required");
+        }
+        
+        if (userDAO.getUserByUsername(username) != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
+        }
+
+        // Set admin flag and create user
+        user.setAdmin(true);
+        user.setVerifiedEmail(true); // Auto-verify admin
+        user.setAllowAlerts(true);
+        
+        userDAO.createUser(user);
+        return ResponseEntity.ok("Admin user created successfully");
     }
 
     // Helper method to validate token

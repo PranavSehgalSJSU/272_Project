@@ -7,6 +7,8 @@ package com.model;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import java.util.List;
+import java.util.ArrayList;
 
 public class User {
     private ObjectId id;
@@ -18,6 +20,10 @@ public class User {
     private boolean verifiedEmail;
     private boolean verifiedPhone;
     private boolean allowAlerts; // true = can receive alerts from others
+    private String city; // city for location-based alerts
+    private List<String> tags; // tags for categorizing users (e.g., "delhi", "vip")
+    private boolean isActive; // active user flag for alert targeting
+    private boolean isAdmin; // admin role flag
 
     public User() {}
 
@@ -30,6 +36,10 @@ public class User {
         this.allowAlerts = (allowAlerts != null) ? allowAlerts : true;
         this.verifiedEmail = false;
         this.verifiedPhone = false;
+        this.city = "";
+        this.tags = new ArrayList<>();
+        this.isActive = true;
+        this.isAdmin = false;
     }
 
     //All getters & setter: No i'm not gonne spend an eternity documenting each function...
@@ -80,6 +90,18 @@ public class User {
         this.allowAlerts = allowAlerts;
     }
 
+    public String getCity() { return city; }
+    public void setCity(String city) { this.city = city; }
+
+    public List<String> getTags() { return tags; }
+    public void setTags(List<String> tags) { this.tags = tags != null ? tags : new ArrayList<>(); }
+
+    public boolean isActive() { return isActive; }
+    public void setActive(boolean isActive) { this.isActive = isActive; }
+
+    public boolean isAdmin() { return isAdmin; }
+    public void setAdmin(boolean isAdmin) { this.isAdmin = isAdmin; }
+
     public Document getDoc() {
         return new Document("username", this.getUsername())
                 .append("password", this.getPassword())
@@ -88,6 +110,10 @@ public class User {
                 .append("pushId", this.getPushId())
                 .append("verifiedEmail", this.isVerifiedEmail())
                 .append("verifiedPhone", this.isVerifiedPhone())
-                .append("allowAlerts", this.isAllowAlerts());
+                .append("allowAlerts", this.isAllowAlerts())
+                .append("city", this.getCity())
+                .append("tags", this.getTags())
+                .append("isActive", this.isActive())
+                .append("isAdmin", this.isAdmin());
     }
 }

@@ -34,7 +34,11 @@ public class UserFileDAO implements UserDAO {
                 .append("pushId", user.getPushId())
                 .append("verifiedEmail", false)
                 .append("verifiedPhone", false)
-                .append("allowAlerts", user.isAllowAlerts());
+                .append("allowAlerts", user.isAllowAlerts())
+                .append("isAdmin", user.isAdmin())
+                .append("city", user.getCity())
+                .append("tags", user.getTags())
+                .append("isActive", user.isActive());
         users.insertOne(doc);
         return user;
     }
@@ -55,6 +59,16 @@ public class UserFileDAO implements UserDAO {
         user.setVerifiedEmail(doc.getBoolean("verifiedEmail", false));
         user.setVerifiedPhone(doc.getBoolean("verifiedPhone", false));
         user.setAllowAlerts(doc.getBoolean("allowAlerts", true));
+        user.setAdmin(doc.getBoolean("isAdmin", false));
+        user.setCity(doc.getString("city"));
+        user.setActive(doc.getBoolean("isActive", true));
+        
+        // Handle tags list
+        java.util.List<String> tags = doc.getList("tags", String.class);
+        if (tags != null) {
+            user.setTags(tags);
+        }
+        
         return user;
     }
 
@@ -91,7 +105,11 @@ public class UserFileDAO implements UserDAO {
                 new Document("$set", new Document()
                         .append("verifiedEmail", user.isVerifiedEmail())
                         .append("verifiedPhone", user.isVerifiedPhone())
-                        .append("allowAlerts", user.isAllowAlerts())));
+                        .append("allowAlerts", user.isAllowAlerts())
+                        .append("isAdmin", user.isAdmin())
+                        .append("city", user.getCity())
+                        .append("tags", user.getTags())
+                        .append("isActive", user.isActive())));
     }
 
     /**
@@ -109,5 +127,49 @@ public class UserFileDAO implements UserDAO {
             return "push";
         }
         return null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public java.util.List<User> getAllUsers() {
+        java.util.List<User> usersList = new java.util.ArrayList<>();
+        try {
+            for (Document doc : users.find()) {
+                User user = documentToUser(doc);
+                if (user != null) {
+                    usersList.add(user);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error getting all users: " + e.getMessage());
+        }
+        return usersList;
+    }
+    
+    private User documentToUser(Document doc) {
+        if (doc == null) return null;
+        
+        User user = new User();
+        user.setUsername(doc.getString("username"));
+        user.setPassword(doc.getString("password"));
+        user.setEmail(doc.getString("email"));
+        user.setPhone(doc.getString("phone"));
+        user.setPushId(doc.getString("pushId"));
+        user.setVerifiedEmail(doc.getBoolean("verifiedEmail", false));
+        user.setVerifiedPhone(doc.getBoolean("verifiedPhone", false));
+        user.setAllowAlerts(doc.getBoolean("allowAlerts", true));
+        user.setAdmin(doc.getBoolean("isAdmin", false));
+        user.setCity(doc.getString("city"));
+        user.setActive(doc.getBoolean("isActive", true));
+        
+        // Handle tags list
+        java.util.List<String> tags = doc.getList("tags", String.class);
+        if (tags != null) {
+            user.setTags(tags);
+        }
+        
+        return user;
     }
 }

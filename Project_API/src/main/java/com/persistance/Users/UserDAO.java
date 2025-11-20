@@ -48,4 +48,10 @@ public interface UserDAO {
      * @
      */
     String chooseMode(User user,String mode);
+
+    /**
+     * Gets all users from the database
+     * @return List of all users
+     */
+    java.util.List<User> getAllUsers();
 }

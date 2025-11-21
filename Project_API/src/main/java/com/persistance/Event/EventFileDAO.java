@@ -23,14 +23,24 @@ import static com.mongodb.client.model.Sorts.*;
 public class EventFileDAO implements EventDAO {
     
     private final MongoCollection<Document> collection;
+    private final InMemoryEventDAO fallbackDAO;
     
     public EventFileDAO() {
         MongoDatabase database = MongoConn.getDatabase();
-        this.collection = database.getCollection("events");
+        this.collection = database != null ? database.getCollection("events") : null;
+        this.fallbackDAO = new InMemoryEventDAO();
+        
+        if (collection == null) {
+            System.out.println("⚠️ MongoDB not connected - using in-memory storage for events");
+        }
     }
     
     @Override
     public Event createEvent(Event event) {
+        if (collection == null) {
+            // Use in-memory storage when database is not connected
+            return fallbackDAO.createEvent(event);
+        }
         try {
             Document doc = event.getDoc();
             collection.insertOne(doc);
@@ -38,7 +48,8 @@ public class EventFileDAO implements EventDAO {
             return event;
         } catch (Exception e) {
             System.err.println("Error creating event: " + e.getMessage());
-            return null;
+            // Fallback to in-memory on database error
+            return fallbackDAO.createEvent(event);
         }
     }
     
@@ -65,6 +76,10 @@ public class EventFileDAO implements EventDAO {
     
     @Override
     public List<Event> getRecentEvents(int limit) {
+        if (collection == null) {
+            // Use in-memory storage when database is not connected
+            return fallbackDAO.getRecentEvents(limit);
+        }
         try {
             List<Event> events = new ArrayList<>();
             for (Document doc : collection.find().sort(descending("firedAt")).limit(limit)) {
@@ -76,7 +91,8 @@ public class EventFileDAO implements EventDAO {
             return events;
         } catch (Exception e) {
             System.err.println("Error getting recent events: " + e.getMessage());
-            return new ArrayList<>();
+            // Fallback to in-memory on database error
+            return fallbackDAO.getRecentEvents(limit);
         }
     }
     

@@ -21,26 +21,31 @@ public class EventDTO {
     public EventDTO(Event event) {
         this.id = event.getId() != null ? event.getId().toHexString() : null;
         this.timestamp = event.getFiredAt() != null ? event.getFiredAt().toString() : null;
-        this.type = "RULE_FIRED";
+        this.type = event.getEventType() != null ? event.getEventType() : "RULE_FIRED";
         this.ruleId = event.getRuleId() != null ? event.getRuleId().toHexString() : null;
         this.ruleName = event.getRuleName();
         
-        // Create a readable message
-        StringBuilder messageBuilder = new StringBuilder();
-        messageBuilder.append("Alert rule '").append(event.getRuleName()).append("' was triggered");
-        if (event.getRecipients() > 0) {
-            messageBuilder.append(" and sent to ").append(event.getRecipients()).append(" recipient(s)");
+        // Use personalized message if available, otherwise create default message
+        if (event.getUserMessage() != null && !event.getUserMessage().isEmpty()) {
+            this.message = event.getUserMessage();
+        } else {
+            // Create a readable message for system events
+            StringBuilder messageBuilder = new StringBuilder();
+            messageBuilder.append("Alert rule '").append(event.getRuleName()).append("' was triggered");
+            if (event.getRecipients() > 0) {
+                messageBuilder.append(" and sent to ").append(event.getRecipients()).append(" recipient(s)");
+            }
+            
+            // Add payload info if available
+            if (event.getPayload() != null && !event.getPayload().isEmpty()) {
+                messageBuilder.append(". Data: ");
+                event.getPayload().entrySet().stream()
+                        .limit(3) // Show first 3 data points
+                        .forEach(entry -> messageBuilder.append(entry.getKey()).append("=").append(entry.getValue()).append(" "));
+            }
+            
+            this.message = messageBuilder.toString().trim();
         }
-        
-        // Add payload info if available
-        if (event.getPayload() != null && !event.getPayload().isEmpty()) {
-            messageBuilder.append(". Data: ");
-            event.getPayload().entrySet().stream()
-                    .limit(3) // Show first 3 data points
-                    .forEach(entry -> messageBuilder.append(entry.getKey()).append("=").append(entry.getValue()).append(" "));
-        }
-        
-        this.message = messageBuilder.toString().trim();
     }
 
     // Getters and Setters

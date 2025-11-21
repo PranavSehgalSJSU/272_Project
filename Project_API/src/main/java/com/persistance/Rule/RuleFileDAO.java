@@ -26,11 +26,15 @@ public class RuleFileDAO implements RuleDAO {
     
     public RuleFileDAO() {
         MongoDatabase database = MongoConn.getDatabase();
-        this.collection = database.getCollection("rules");
+        this.collection = database != null ? database.getCollection("rules") : null;
     }
     
     @Override
     public Rule createRule(Rule rule) {
+        if (collection == null) {
+            System.err.println("Database not connected - cannot create rule");
+            return null;
+        }
         try {
             Document doc = rule.getDoc();
             collection.insertOne(doc);
@@ -44,6 +48,10 @@ public class RuleFileDAO implements RuleDAO {
     
     @Override
     public Rule updateRule(Rule rule) {
+        if (collection == null) {
+            System.err.println("Database not connected - cannot update rule");
+            return null;
+        }
         try {
             Document doc = rule.getDoc();
             collection.replaceOne(eq("_id", rule.getId()), doc);
@@ -56,6 +64,10 @@ public class RuleFileDAO implements RuleDAO {
     
     @Override
     public Rule getRuleById(ObjectId id) {
+        if (collection == null) {
+            System.err.println("Database not connected - cannot get rule by ID");
+            return null;
+        }
         try {
             Document doc = collection.find(eq("_id", id)).first();
             return doc != null ? documentToRule(doc) : null;
@@ -77,6 +89,10 @@ public class RuleFileDAO implements RuleDAO {
     
     @Override
     public List<Rule> getAllRules() {
+        if (collection == null) {
+            System.err.println("Database not connected - returning empty rules list");
+            return new ArrayList<>();
+        }
         try {
             List<Rule> rules = new ArrayList<>();
             for (Document doc : collection.find()) {

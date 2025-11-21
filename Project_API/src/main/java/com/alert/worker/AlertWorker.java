@@ -132,8 +132,8 @@ public class AlertWorker {
                 renderedMessage.getChannels()
             );
             
-            // Create event record
-            Event event = new Event(
+            // Create system event record
+            Event systemEvent = new Event(
                 rule.getId(),
                 rule.getName(),
                 sourceData,
@@ -141,7 +141,10 @@ public class AlertWorker {
                 recipients.size(),
                 channelResults
             );
-            eventDAO.createEvent(event);
+            eventDAO.createEvent(systemEvent);
+            
+            // Create user-specific events for each recipient
+            createUserSpecificEvents(rule, recipients, renderedMessage, sourceData, channelResults, now);
             
             // Update rule's last fired time
             rule.setLastFiredAt(now);
@@ -239,6 +242,80 @@ public class AlertWorker {
             Map<String, Object> errorResult = new java.util.HashMap<>();
             errorResult.put("error", e.getMessage());
             return errorResult;
+        }
+    }
+    
+    /**
+     * Create user-specific events for each recipient
+     */
+    private void createUserSpecificEvents(Rule rule, List<User> recipients, 
+                                        MessageTemplater.RenderedMessage renderedMessage,
+                                        Map<String, Object> sourceData, 
+                                        Map<String, Object> channelResults,
+                                        LocalDateTime firedAt) {
+        try {
+            for (User user : recipients) {
+                // Create personalized message based on channels sent
+                StringBuilder userMessage = new StringBuilder();
+                
+                // Get successful channels for this user
+                List<String> successfulChannels = new java.util.ArrayList<>();
+                if (channelResults != null) {
+                    for (String channel : renderedMessage.getChannels()) {
+                        Object channelResult = channelResults.get(channel);
+                        if (channelResult instanceof Map) {
+                            Map<?, ?> channelMap = (Map<?, ?>) channelResult;
+                            if ("success".equals(channelMap.get("status"))) {
+                                successfulChannels.add(channel);
+                            }
+                        }
+                    }
+                } else {
+                    // If no results, assume all channels were attempted
+                    successfulChannels.addAll(renderedMessage.getChannels());
+                }
+                
+                // Create user-friendly message
+                if (successfulChannels.size() > 0) {
+                    userMessage.append("🚨 You received an ");
+                    
+                    if (successfulChannels.contains("email")) {
+                        userMessage.append("email");
+                    }
+                    if (successfulChannels.contains("sms")) {
+                        if (successfulChannels.contains("email")) {
+                            userMessage.append(" and SMS");
+                        } else {
+                            userMessage.append("SMS");
+                        }
+                    }
+                    
+                    userMessage.append(" alert for: ").append(renderedMessage.getHeader());
+                    
+                    // Add some context from the payload
+                    if (sourceData != null && sourceData.containsKey("temp_c")) {
+                        userMessage.append(" (Temperature: ").append(sourceData.get("temp_c")).append("°C)");
+                    }
+                } else {
+                    userMessage.append("⚠️ Alert attempted for: ").append(renderedMessage.getHeader())
+                              .append(" (delivery may have failed)");
+                }
+                
+                // Create user-specific event
+                Event userEvent = new Event(
+                    rule.getId(),
+                    rule.getName(),
+                    user.getUsername(), // userId
+                    "USER_ALERT_RECEIVED",
+                    userMessage.toString(),
+                    sourceData,
+                    firedAt
+                );
+                
+                eventDAO.createEvent(userEvent);
+            }
+        } catch (Exception e) {
+            System.err.println("Error creating user-specific events: " + e.getMessage());
         }
     }
 }

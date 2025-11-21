@@ -112,9 +112,9 @@ export default function UserPortal() {
           {activeTab === 'alerts' && (
             <div className="space-y-6">
               <div className="bg-white shadow rounded-lg p-6">
-                <h2 className="text-lg font-medium text-gray-900 mb-4">Recent Alerts</h2>
+                <h2 className="text-lg font-medium text-gray-900 mb-4">My Emergency Alerts</h2>
                 <p className="text-sm text-gray-600 mb-4">
-                  You will receive emergency alerts here when they are triggered. Alerts are sent daily at 8 AM when conditions are met.
+                  This shows your personal alert history. You'll see email and SMS alerts you've received when emergency conditions are detected.
                 </p>
                 <EventsList onRefresh={() => {}} />
               </div>

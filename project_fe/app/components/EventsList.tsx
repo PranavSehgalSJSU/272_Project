@@ -22,7 +22,19 @@ export function EventsList({ onRefresh }: EventsListProps) {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:8080/api/events?limit=50');
+      
+      // Get user context for filtering user-specific events
+      const username = localStorage.getItem('username');
+      const isAdmin = localStorage.getItem('isAdmin') === 'true';
+      
+      let url = 'http://localhost:8080/api/events?limit=50';
+      
+      // If not admin, filter events for this user
+      if (!isAdmin && username) {
+        url += `&userId=${encodeURIComponent(username)}`;
+      }
+      
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setEvents(data);
@@ -66,26 +78,34 @@ export function EventsList({ onRefresh }: EventsListProps) {
         </div>
       ) : (
         <div className="space-y-2 max-h-96 overflow-y-auto">
-          {events.map((event) => (
-            <div key={event.id} className="border rounded-lg p-3 bg-gray-50">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">{event.type}</span>
-                    <span className="text-xs text-gray-500">
-                      {new Date(event.timestamp).toLocaleString()}
-                    </span>
+          {events.map((event) => {
+            const isUserEvent = event.type === 'USER_ALERT_RECEIVED';
+            const bgColor = isUserEvent ? 'bg-blue-50 border-blue-200' : 'bg-gray-50';
+            const typeColor = isUserEvent ? 'text-blue-600 bg-blue-100' : 'text-gray-600 bg-gray-100';
+            
+            return (
+              <div key={event.id} className={`border rounded-lg p-3 ${bgColor}`}>
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${typeColor}`}>
+                        {isUserEvent ? '📧 My Alert' : '⚙️ System'}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(event.timestamp).toLocaleString()}
+                      </span>
+                    </div>
+                    <p className="text-sm mt-2 font-medium">{event.message}</p>
+                    {event.ruleName && (
+                      <p className="text-xs text-blue-600 mt-1">
+                        Emergency Rule: {event.ruleName}
+                      </p>
+                    )}
                   </div>
-                  <p className="text-sm mt-1">{event.message}</p>
-                  {event.ruleName && (
-                    <p className="text-xs text-blue-600 mt-1">
-                      Rule: {event.ruleName}
-                    </p>
-                  )}
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

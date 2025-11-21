@@ -18,6 +18,9 @@ public class Event {
     private LocalDateTime firedAt;
     private int recipients; // number of recipients
     private Map<String, Object> channelResults; // per-channel success/failure stats
+    private String userId; // for user-specific events
+    private String eventType; // RULE_FIRED, USER_ALERT_RECEIVED, etc.
+    private String userMessage; // personalized message for user
 
     public Event() {}
 
@@ -29,6 +32,20 @@ public class Event {
         this.firedAt = firedAt;
         this.recipients = recipients;
         this.channelResults = channelResults;
+        this.eventType = "RULE_FIRED";
+    }
+
+    // Constructor for user-specific events
+    public Event(ObjectId ruleId, String ruleName, String userId, String eventType, 
+                 String userMessage, Map<String, Object> payload, LocalDateTime firedAt) {
+        this.ruleId = ruleId;
+        this.ruleName = ruleName;
+        this.userId = userId;
+        this.eventType = eventType;
+        this.userMessage = userMessage;
+        this.payload = payload;
+        this.firedAt = firedAt;
+        this.recipients = 1; // single user
     }
 
     // Getters and Setters
@@ -53,13 +70,25 @@ public class Event {
     public Map<String, Object> getChannelResults() { return channelResults; }
     public void setChannelResults(Map<String, Object> channelResults) { this.channelResults = channelResults; }
 
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+
+    public String getEventType() { return eventType; }
+    public void setEventType(String eventType) { this.eventType = eventType; }
+
+    public String getUserMessage() { return userMessage; }
+    public void setUserMessage(String userMessage) { this.userMessage = userMessage; }
+
     public Document getDoc() {
         Document doc = new Document("ruleId", this.getRuleId())
                 .append("ruleName", this.getRuleName())
                 .append("payload", this.getPayload())
                 .append("firedAt", this.getFiredAt().toString())
                 .append("recipients", this.getRecipients())
-                .append("channelResults", this.getChannelResults());
+                .append("channelResults", this.getChannelResults())
+                .append("userId", this.getUserId())
+                .append("eventType", this.getEventType())
+                .append("userMessage", this.getUserMessage());
 
         return doc;
     }

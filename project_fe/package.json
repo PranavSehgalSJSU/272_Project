@@ -1,27 +1,28 @@
 {
-  "name": "project_fe",
+  "name": "emergency-alert-dashboard",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint"
   },
   "dependencies": {
-    "next": "16.0.1",
-    "next.js": "^1.0.3",
-    "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "@types/node": "^20.8.0",
+    "@types/react": "^18.2.25",
+    "@types/react-dom": "^18.2.11",
+    "autoprefixer": "^10.4.16",
+    "lucide-react": "^0.290.0",
+    "next": "14.0.0",
+    "postcss": "^8.4.31",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.2.2"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.0.1",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "eslint": "^8.51.0",
+    "eslint-config-next": "14.0.0",
+    "tailwindcss": "^3.3.5"
   }
 }

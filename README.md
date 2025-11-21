@@ -20,13 +20,15 @@ POST http://localhost:8080/auth/login
 }
 
 # User to User Alert
-POST http://localhost:8080/alert/send
+POST http://localhost:8080/alert/sendFromUser
 {
   "sender": "user1",
   "receiver": "user2",
+  "receivers": ["user3", "user4"],
   "token": "auth0 Token",
-  "message": "...",
-  "mode": "email/sms/push"
+  "message": "...", 
+  "header" : "...",
+  "mode": "email/sms/*"
 }
 
 # Change allowed alerts

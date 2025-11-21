@@ -36,21 +36,17 @@ public class AlertController {
 
     @PostMapping("/sendFromUser")
     public ResponseEntity<String> sendAlert(@RequestBody AlertRequest req) {
-    
-        User sender = userDAO.getUserByUsername(req.getSender());
-        User receiver = userDAO.getUserByUsername(req.getReceiver());
 
+        User sender = userDAO.getUserByUsername(req.getSender());
         if (sender == null || !authController.isValidToken(sender.getUsername(), req.getToken())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid sender or token");
-        }else if (receiver == null){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Receiver not found");
-        }else if (!receiver.isAllowAlerts()){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(receiver.getUsername() + " has opted out of alerts");
-        }  
+        }
 
-        String mode   = userDAO.chooseMode(receiver, req.getMode());
-        String header = emailDAO.checkHeader(req.getHeader());
-        String resStr = (receiver.getUsername() + " hasn't verified this alert channel yet...");
+        Set<String> targetUsernames = new HashSet<>();
+        
+        if (req.getReceiver() != null && !req.getReceiver().isBlank()) {
+            targetUsernames.add(req.getReceiver());
+        }
 
         boolean alertSent = false;
         Map<String, Object> channelResults = new HashMap<>();
@@ -80,8 +76,6 @@ public class AlertController {
                     channelResults.put("push", "sent");
                     alertSent = true;
                 }
-            }default -> {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid mode");
             }
         }
 

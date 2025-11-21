@@ -53,7 +53,8 @@ public class SmsFileDAO implements SmsDAO {
 
     @Override
     public void sendVerificationSms(String username, String phoneNumber) {
-        String verifyLink = "http://localhost:8080/auth/verify?username=" + username + "&type=phone";
+        String link = PropertyReader.getProperty("api.link");
+        String verifyLink = link+"/auth/verify?username=" + username + "&type=phone";
         String message = "Hey " + username + "!\n\n"
                 + "Please verify your phone number:\n"
                 + verifyLink + "\n\n";

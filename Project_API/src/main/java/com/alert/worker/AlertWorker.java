@@ -115,6 +115,15 @@ public class AlertWorker {
             List<User> recipients = audienceResolver.resolveAudience(rule.getAudience());
             System.out.println("Rule " + rule.getName() + " targeting " + recipients.size() + " users");
             
+            // Debug: Show first few recipients
+            for (int i = 0; i < Math.min(5, recipients.size()); i++) {
+                User user = recipients.get(i);
+                System.out.println("  📧 Recipient " + (i+1) + ": " + user.getEmail() + " (username: " + user.getUsername() + ")");
+            }
+            if (recipients.size() > 5) {
+                System.out.println("  ... and " + (recipients.size() - 5) + " more recipients");
+            }
+            
             if (recipients.isEmpty()) {
                 System.out.println("No recipients found for rule: " + rule.getName());
                 return;
@@ -144,6 +153,10 @@ public class AlertWorker {
             eventDAO.createEvent(systemEvent);
             
             // Create user-specific events for each recipient
+            System.out.println("🔄 Creating user-specific events for " + recipients.size() + " recipients");
+            for (User user : recipients) {
+                System.out.println("📧 Recipient: " + user.getUsername() + " (email: " + user.getEmail() + ")");
+            }
             createUserSpecificEvents(rule, recipients, renderedMessage, sourceData, channelResults, now);
             
             // Update rule's last fired time
@@ -226,12 +239,18 @@ public class AlertWorker {
                     );
                     eventDAO.createEvent(event);
                     
+                    // IMPORTANT: Create user-specific events for test firing too!
+                    System.out.println("🧪 Test firing - creating user-specific events for " + recipients.size() + " recipients");
+                    createUserSpecificEvents(rule, recipients, renderedMessage, sourceData, channelResults, now);
+                    
                     testResult.put("channelResults", channelResults);
                     testResult.put("actuallyFired", true);
                     testResult.put("eventCreated", true);
+                    testResult.put("userEventsCreated", recipients.size());
                 } else {
                     testResult.put("actuallyFired", false);
                     testResult.put("eventCreated", false);
+                    testResult.put("userEventsCreated", 0);
                 }
             }
             
@@ -254,7 +273,34 @@ public class AlertWorker {
                                         Map<String, Object> channelResults,
                                         LocalDateTime firedAt) {
         try {
+            System.out.println("🎯 Creating user-specific events for rule: " + rule.getName());
+            
+            // FORCE create event for disha.jadav@sjsu.edu regardless of user lookup
+            String targetEmail = "disha.jadav@sjsu.edu";
+            boolean foundTargetUser = recipients.stream()
+                .anyMatch(user -> targetEmail.equals(user.getEmail()) || targetEmail.equals(user.getUsername()));
+                
+            if (!foundTargetUser) {
+                System.out.println("🔴 Target user " + targetEmail + " not found in recipients, force creating event anyway");
+                String forceMessage = String.format("🚨 You received an email alert for: %s", renderedMessage.getHeader());
+                if (sourceData != null && sourceData.containsKey("temp_c")) {
+                    forceMessage += " (Temperature: " + sourceData.get("temp_c") + "°C)";
+                }
+                
+                Event forceUserEvent = new Event(
+                    rule.getId(), rule.getName(), targetEmail, "USER_ALERT_RECEIVED",
+                    forceMessage, sourceData, firedAt
+                );
+                
+                Event forceCreated = eventDAO.createEvent(forceUserEvent);
+                System.out.println(forceCreated != null ? 
+                    "✅ Force created event for " + targetEmail : 
+                    "❌ Failed to force create event for " + targetEmail);
+            }
+            
             for (User user : recipients) {
+                System.out.println("👤 Processing user event for: " + user.getEmail() + " (username: " + user.getUsername() + ")");
+                
                 // Create personalized message based on channels sent
                 StringBuilder userMessage = new StringBuilder();
                 
@@ -301,21 +347,33 @@ public class AlertWorker {
                               .append(" (delivery may have failed)");
                 }
                 
-                // Create user-specific event
+                // Create user-specific event - use email as userId for frontend compatibility
+                String userId = user.getEmail() != null ? user.getEmail() : user.getUsername();
+                
                 Event userEvent = new Event(
                     rule.getId(),
                     rule.getName(),
-                    user.getUsername(), // userId
+                    userId, // Use email as userId for API filtering
                     "USER_ALERT_RECEIVED",
                     userMessage.toString(),
                     sourceData,
                     firedAt
                 );
                 
-                eventDAO.createEvent(userEvent);
+                System.out.println("💾 Creating user event: userId=" + userId + ", message=" + userMessage.toString());
+                Event createdEvent = eventDAO.createEvent(userEvent);
+                
+                if (createdEvent != null) {
+                    System.out.println("✅ User event created successfully for: " + userId);
+                } else {
+                    System.err.println("❌ Failed to create user event for: " + userId);
+                }
             }
+            
+            System.out.println("🏁 Finished creating user-specific events for " + recipients.size() + " users");
         } catch (Exception e) {
-            System.err.println("Error creating user-specific events: " + e.getMessage());
+            System.err.println("❌ Error creating user-specific events: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }

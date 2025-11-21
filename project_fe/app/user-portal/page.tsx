@@ -116,7 +116,7 @@ export default function UserPortal() {
                 <p className="text-sm text-gray-600 mb-4">
                   This shows your personal alert history. You'll see email and SMS alerts you've received when emergency conditions are detected.
                 </p>
-                <EventsList onRefresh={() => {}} />
+                <EventsList />
               </div>
             </div>
           )}

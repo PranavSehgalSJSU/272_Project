@@ -259,7 +259,7 @@ export function RuleForm({ rule, onSubmit, onCancel }: RuleFormProps) {
             <div>
               <label className="label">Channels</label>
               <div className="flex space-x-4">
-                {['email', 'sms', 'push'].map(channel => (
+                {['email', 'sms'].map(channel => (
                   <label key={channel} className="flex items-center">
                     <input
                       type="checkbox"

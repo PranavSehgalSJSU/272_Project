@@ -12,10 +12,12 @@ export type Event = {
 };
 
 type EventsListProps = {
+  events?: Event[];
+  loading?: boolean;
   onRefresh?: () => void;
 };
 
-export function EventsList({ onRefresh }: EventsListProps) {
+export function EventsList({ events: propEvents, loading: propLoading, onRefresh }: EventsListProps) {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,14 +49,20 @@ export function EventsList({ onRefresh }: EventsListProps) {
   };
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  useEffect(() => {
-    if (onRefresh) {
+    // Use prop events if provided, otherwise fetch independently
+    if (propEvents !== undefined) {
+      setEvents(propEvents);
+      setLoading(propLoading || false);
+    } else {
       fetchEvents();
     }
-  }, [onRefresh]);
+  }, [propEvents, propLoading]);
+
+  useEffect(() => {
+    if (onRefresh && propEvents === undefined) {
+      fetchEvents();
+    }
+  }, [onRefresh, propEvents]);
 
   if (loading) {
     return <div className="text-center py-4">Loading events...</div>;
@@ -65,7 +73,7 @@ export function EventsList({ onRefresh }: EventsListProps) {
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Recent Events</h3>
         <button
-          onClick={fetchEvents}
+          onClick={onRefresh || fetchEvents}
           className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
         >
           Refresh

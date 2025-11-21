@@ -31,10 +31,14 @@ public class InMemoryEventDAO implements EventDAO {
             }
             
             events.put(event.getId(), event);
-            System.out.println("✅ Event created in memory: " + event.getRuleName());
+            System.out.println("✅ Event created in memory: " + event.getRuleName() + 
+                             " (ID: " + event.getId() + ", UserID: " + event.getUserId() + 
+                             ", Type: " + event.getEventType() + ")");
+            System.out.println("📊 Total events in memory: " + events.size());
             return event;
         } catch (Exception e) {
             System.err.println("Error creating event in memory: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }
@@ -56,10 +60,17 @@ public class InMemoryEventDAO implements EventDAO {
     
     @Override
     public List<Event> getRecentEvents(int limit) {
-        return events.values().stream()
+        List<Event> result = events.values().stream()
                 .sorted(Comparator.comparing(Event::getFiredAt, Comparator.nullsLast(Comparator.reverseOrder())))
                 .limit(limit)
                 .collect(Collectors.toList());
+        
+        System.out.println("🔍 InMemory getRecentEvents: Found " + events.size() + " total, returning " + result.size());
+        for (Event event : result) {
+            System.out.println("  - " + event.getRuleName() + " (UserID: " + event.getUserId() + ", Type: " + event.getEventType() + ")");
+        }
+        
+        return result;
     }
     
     @Override

@@ -133,6 +133,11 @@ public class EventFileDAO implements EventDAO {
             event.setRecipients(doc.getInteger("recipients", 0));
             event.setChannelResults((Map<String, Object>) doc.get("channelResults", Map.class));
             
+            // Handle user-specific fields
+            event.setUserId(doc.getString("userId"));
+            event.setEventType(doc.getString("eventType"));
+            event.setUserMessage(doc.getString("userMessage"));
+            
             // Parse firedAt
             String firedAtStr = doc.getString("firedAt");
             if (firedAtStr != null && !firedAtStr.isEmpty()) {

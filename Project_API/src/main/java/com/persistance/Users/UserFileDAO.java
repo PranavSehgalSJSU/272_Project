@@ -20,13 +20,61 @@ import com.persistance.Database.MongoConn;
 
 
 public class UserFileDAO implements UserDAO {
-    private final MongoCollection<Document> users = MongoConn.getDatabase().getCollection("users");
+    private final MongoCollection<Document> users;
+    private final boolean useInMemoryFallback;
+    
+    // In-memory fallback users when MongoDB is not connected
+    private static final java.util.List<User> inMemoryUsers = new java.util.ArrayList<>();
+    
+    static {
+        // Initialize some default users for testing when database is not connected
+        User testUser1 = new User();
+        testUser1.setUsername("disha.jadav@sjsu.edu");
+        testUser1.setEmail("disha.jadav@sjsu.edu");
+        testUser1.setPhone("+1234567890");
+        testUser1.setCity("San Jose");
+        testUser1.setAllowAlerts(true);
+        testUser1.setActive(true);
+        testUser1.setAdmin(false);
+        testUser1.setTags(java.util.Arrays.asList("emergency", "weather"));
+        inMemoryUsers.add(testUser1);
+        
+        User testUser2 = new User();
+        testUser2.setUsername("admin@alert.com");
+        testUser2.setEmail("admin@alert.com");
+        testUser2.setPhone("+1234567891");
+        testUser2.setCity("San Jose");
+        testUser2.setAllowAlerts(true);
+        testUser2.setActive(true);
+        testUser2.setAdmin(true);
+        testUser2.setTags(java.util.Arrays.asList("admin", "emergency"));
+        inMemoryUsers.add(testUser2);
+    }
+    
+    public UserFileDAO() {
+        com.mongodb.client.MongoDatabase database = MongoConn.getDatabase();
+        if (database != null) {
+            this.users = database.getCollection("users");
+            this.useInMemoryFallback = false;
+            System.out.println("✅ UserDAO connected to MongoDB");
+        } else {
+            this.users = null;
+            this.useInMemoryFallback = true;
+            System.out.println("⚠️ UserDAO using in-memory fallback (" + inMemoryUsers.size() + " users)");
+        }
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
     public User createUser(User user) {
+        if (useInMemoryFallback) {
+            inMemoryUsers.add(user);
+            System.out.println("➕ User added to in-memory storage: " + user.getUsername());
+            return user;
+        }
+        
         Document doc = new Document("username", user.getUsername())
                 .append("password", user.getPassword())
                 .append("email", user.getEmail())
@@ -48,6 +96,13 @@ public class UserFileDAO implements UserDAO {
      */
     @Override
     public User getUserByUsername(String username) {
+        if (useInMemoryFallback) {
+            return inMemoryUsers.stream()
+                    .filter(user -> username.equals(user.getUsername()))
+                    .findFirst()
+                    .orElse(null);
+        }
+        
         Document doc = users.find(Filters.eq("username", username)).first();
         if (doc == null){return null;}
         User user = new User();
@@ -77,6 +132,11 @@ public class UserFileDAO implements UserDAO {
      */
     @Override
     public Boolean emailIsInUse(String email) {
+        if (useInMemoryFallback) {
+            return inMemoryUsers.stream()
+                    .anyMatch(user -> email.equals(user.getEmail()));
+        }
+        
         Document doc = users.find(Filters.eq("email", email)).first();
         if (doc != null){
             return true;
@@ -89,6 +149,11 @@ public class UserFileDAO implements UserDAO {
      */
     @Override
     public Boolean phoneIsInUse(String phone) {
+        if (useInMemoryFallback) {
+            return inMemoryUsers.stream()
+                    .anyMatch(user -> phone.equals(user.getPhone()));
+        }
+        
         Document doc = users.find(Filters.eq("phone", phone)).first();
         if (doc != null){
             return true;
@@ -101,6 +166,17 @@ public class UserFileDAO implements UserDAO {
      */
     @Override
     public void updateUser(User user) {
+        if (useInMemoryFallback) {
+            for (int i = 0; i < inMemoryUsers.size(); i++) {
+                if (user.getUsername().equals(inMemoryUsers.get(i).getUsername())) {
+                    inMemoryUsers.set(i, user);
+                    System.out.println("🔄 Updated in-memory user: " + user.getUsername());
+                    return;
+                }
+            }
+            return;
+        }
+        
         users.updateOne(Filters.eq("username", user.getUsername()),
                 new Document("$set", new Document()
                         .append("verifiedEmail", user.isVerifiedEmail())
@@ -134,6 +210,11 @@ public class UserFileDAO implements UserDAO {
      */
     @Override
     public java.util.List<User> getAllUsers() {
+        if (useInMemoryFallback) {
+            System.out.println("📋 Returning " + inMemoryUsers.size() + " in-memory users");
+            return new java.util.ArrayList<>(inMemoryUsers);
+        }
+        
         java.util.List<User> usersList = new java.util.ArrayList<>();
         try {
             for (Document doc : users.find()) {

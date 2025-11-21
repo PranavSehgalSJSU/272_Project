@@ -29,12 +29,17 @@ export type Rule = {
 
 export type Event = {
   id: string;
-  ruleId: string;
-  ruleName: string;
-  payload: Record<string, any>;
-  firedAt: string;
-  recipients: number;
-  channelResults: Record<string, any>;
+  ruleId?: string;
+  ruleName?: string;
+  userId?: string;
+  eventType?: string;
+  message: string;
+  timestamp: string;
+  type: string;
+  payload?: Record<string, any>;
+  firedAt?: string;
+  recipients?: number;
+  channelResults?: Record<string, any>;
 };
 
 export default function AdminDashboard() {
@@ -192,7 +197,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full sm:px-6">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
               <Shield className="h-8 w-8 text-blue-600 mr-3" />
@@ -222,7 +227,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           <div className="space-y-6">
             {/* Navigation Tabs */}
@@ -279,7 +284,7 @@ export default function AdminDashboard() {
             {activeTab === 'events' && (
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold text-gray-900">Recent Events</h2>
-                <EventsList onRefresh={loadEvents} />
+                <EventsList events={events} loading={loading} onRefresh={loadEvents} />
               </div>
             )}
 
